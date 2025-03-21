@@ -32,7 +32,7 @@ def main() -> None:
         "--base-model",
         type=str,
         default="yolo11n.pt",
-        help="Base model to start training with.",
+        help="Base model to start training with, can be a base model name like 'yolo11n.pt' or a path to a local one.",
     )
     parser.add_argument(
         "--resume", action="store_true", help="Resume training if model exists."
