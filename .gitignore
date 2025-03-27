@@ -1,3 +1,5 @@
 runs/
 *.pt
 .venv
+models
+*.npy
