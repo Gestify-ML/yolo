@@ -7,7 +7,6 @@ import subprocess
 
 import cv2
 import numpy as np
-import numpy.typing as npt
 from onnxruntime.quantization import (  # type: ignore
     CalibrationDataReader,
     QuantFormat,
@@ -20,48 +19,45 @@ MODEL_PATH = pathlib.Path(R"models/ten_gestures.pt")
 DATASET = pathlib.Path(R"/home/hwang6/data/hagrid_yolo_format")
 
 
-class ImageCalibrationDataReader(CalibrationDataReader):
+class DataReader(CalibrationDataReader):
     def __init__(self):
         self.idx = 0
-        self.inputName = "images"
+        self.input_name = "images"
 
-        # Select 100 random images from each class
-        classes = (DATASET / "test").iterdir()
-        self.imagePaths: list[pathlib.Path] = []
-        for c in classes:
-            self.imagePaths.extend(random.sample(list(c.iterdir()), 100))
+        self.image_paths: list[pathlib.Path] = []
+        for c in (DATASET / "val").iterdir():
+            self.image_paths.extend(random.sample(list(c.iterdir()), 10))
 
-    def preprocess(self, path: pathlib.Path) -> npt.NDArray[np.float32]:
+    def preprocess(self, imgPath: pathlib.Path):
         # Same preprocessing that you do before feeding it to the model
-        frame = cv2.imread(str(path))
-        x = cv2.resize(frame, (640, 640))
-        imageData = np.array(x).astype(np.float32) / 255.0  # Normalize to [0, 1] range
-        imageData = np.transpose(imageData, (2, 0, 1))  # (H, W, C) -> (C, H, W)
-        imageData = np.expand_dims(imageData, axis=0)  # Add batch dimension
-        return imageData
+        frame = cv2.imread(str(imgPath))
+        X = cv2.resize(frame, (640, 640))
+        image_data = np.array(X).astype(np.float32) / 255.0  # Normalize to [0, 1] range
+        image_data = np.transpose(image_data, (2, 0, 1))  # (H, W, C) -> (C, H, W)
+        image_data = np.expand_dims(image_data, axis=0)  # Add batch dimension
+        return image_data
 
-    def get_next(self) -> dict[str, npt.NDArray[np.float32]]:
+    def get_next(self):  # type: ignore
         # method to iterate through the data set
-        if self.idx >= len(self.imagePaths):
-            return None  # type: ignore
+        if self.idx >= len(self.image_paths):
+            return None
 
-        imagePath = self.imagePaths[self.idx]
-        inputData = self.preprocess(imagePath)
+        image_path = self.image_paths[self.idx]
+        print(f"{self.idx}: {image_path}")
+        input_data = self.preprocess(image_path)
         self.idx += 1
-        print(f"Done: {self.idx}")
-        return {self.inputName: inputData}
-
-    def __len__(self):
-        return len(self.imagePaths)
+        return {self.input_name: input_data}
 
 
-def main() -> None:
-    random.seed("315e395e-e4f5-444d-9b7e-c98c82f0b0b6")
+def integerQuantize() -> None:
+    onnxPath = MODEL_PATH.with_suffix(".onnx")
+    preprocessPath = pathlib.Path(R"models/ten_gestures_preprocessed.onnx")
+    quantizedPath = pathlib.Path(R"models/ten_gestures_int8.onnx")
+
+    if quantizedPath.exists():
+        return
 
     # Preprocess model if needed
-    onnxPath = MODEL_PATH.with_suffix(".onnx")
-    preprocessPath = onnxPath.with_name(onnxPath.stem + "_preprocessed")
-    quantizedPath = onnxPath.with_name(onnxPath.stem + "_quantized")
     if not preprocessPath.exists():
         model = YOLO(MODEL_PATH)
         model.export(format="onnx")
@@ -79,12 +75,13 @@ def main() -> None:
         )
 
     # Quantize
+    print("Quantizing to int8")
     quantize_static(
         preprocessPath,
         quantizedPath,
         weight_type=QuantType.QInt8,
         activation_type=QuantType.QUInt8,
-        calibration_data_reader=ImageCalibrationDataReader(),
+        calibration_data_reader=DataReader(),
         quant_format=QuantFormat.QDQ,
         nodes_to_exclude=[
             "/model.23/dfl/Reshape",
@@ -107,9 +104,10 @@ def main() -> None:
         per_channel=False,
         reduce_range=True,
     )
+    pass
 
 
-def main2() -> None:
+def main() -> None:
     model = YOLO(MODEL_PATH)
 
     if not pathlib.Path(R"models/ten_gestures_full.onnx").exists():
@@ -147,16 +145,8 @@ def main2() -> None:
             "models/ten_gestures_half.tflite",
         )
 
-    # if not pathlib.Path(R"models/ten_gestures_full.onnx").exists() and True:
-    # model.export(
-    #     format="tflite",
-    #     int8=True,
-    #     device=0,
-    #     data=DATASET / "hagrid.yaml",
-    # )
-    # shutil.move("models/ten_gestures.tflite", "models/ten_gestures_int8.tflite")
-    pass
+    integerQuantize()
 
 
 if __name__ == "__main__":
-    main2()
+    main()
