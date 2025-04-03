@@ -8,7 +8,14 @@ Gestify's hand recognition model is based on Ultralytics' detection model, and w
 * Memory optimization considerations
 
 ## Implementation
-* Quantization implementation
+The trained model is based on Ultralytics's Yolo11n detection model, and is trained on Hagrid's hand gesture  dataset.
+
+### Quantization
+Quantization is important as a post processing step to increase inference speed and to reduce memory usage. Following the workflow from Ultralytics training framework, quantization is done when the model is exported to other formats.
+
+The model originally has elements in 32-bit floating point format. We use post-training quantization to convert the model into 16-bit floating point, and 8-bit integer variants. When quantizing to 8-bit integers, we need a calibration dataset which is representative of the real-world usage. We construct this dataset by taking a subset of the images in each gesture class from the hagrid dataset. By default we randomly select 10 images from each gesture class.
+
+TODO:
 * Pruning techniques applied
 * Model compression methods
 * Successful deployment on target device
