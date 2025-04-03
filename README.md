@@ -15,6 +15,9 @@ Quantization is important as a post processing step to increase inference speed 
 
 The model originally has elements in 32-bit floating point format. We use post-training quantization to convert the model into 16-bit floating point, and 8-bit integer variants. When quantizing to 8-bit integers, we need a calibration dataset which is representative of the real-world usage. We construct this dataset by taking a subset of the images in each gesture class from the hagrid dataset. By default we randomly select 10 images from each gesture class.
 
+### Coarse Pruning
+Coarse pruning, also known as structured pruning, removes entire channels, layers, or blocks from the model to reduce its overall complexity while maintaining as much accuracy as possible. This process is particularly effective for deploying the model on resource-constrained devices such as Android smartphones. To achieve coarse pruning with the trained 10 gestures model, we use the ln_structured function.
+
 TODO:
 * Pruning techniques applied
 * Model compression methods
@@ -89,6 +92,15 @@ The artifacts from the script are as follows,
 * `[model_name]_half.tflite`, float16 in tensorflow lite format
 
 ---
+
+'structured_prune.py' is used for performing structured (coarse) pruning on a trained YOLO model. It removes redundant channels and layers to optimize performance for mobile deployment. The script has the following arguments:
+*	--model – The path to the trained YOLO model to be pruned.
+*	--sparsity – The fraction of the model to prune (e.g., 0.3 removes 30% of the least important channels).
+*	--output – The directory where the pruned model will be saved.
+*	--fine-tune – (Optional) If set, the pruned model will be fine-tuned on the dataset to recover accuracy.
+*	--epochs – (Optional) The number of fine-tuning epochs (default: 10). Only relevant if --fine-tune is enabled.
+---
+
 TODO pruning scripts descriptions
 
 TODO
