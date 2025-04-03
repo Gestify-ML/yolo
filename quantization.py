@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import pathlib
 import random
 import shutil
@@ -15,17 +16,22 @@ from onnxruntime.quantization import (  # type: ignore
 )
 from ultralytics import YOLO  # type: ignore
 
-MODEL_PATH = pathlib.Path(R"models/ten_gestures.pt")
-DATASET = pathlib.Path(R"/home/hwang6/data/hagrid_yolo_format")
+# MODEL_PATH = pathlib.Path(R"models/ten_gestures.pt")
+# DATASET = pathlib.Path(R"/home/hwang6/data/hagrid_yolo_format")
+
+
+class ProgramArguments(argparse.Namespace):
+    model: pathlib.Path
+    dataset: pathlib.Path
 
 
 class DataReader(CalibrationDataReader):
-    def __init__(self):
+    def __init__(self, dataset: pathlib.Path):
         self.idx = 0
         self.input_name = "images"
 
         self.image_paths: list[pathlib.Path] = []
-        for c in (DATASET / "val").iterdir():
+        for c in (dataset / "val").iterdir():
             self.image_paths.extend(random.sample(list(c.iterdir()), 10))
 
     def preprocess(self, imgPath: pathlib.Path):
@@ -49,17 +55,29 @@ class DataReader(CalibrationDataReader):
         return {self.input_name: input_data}
 
 
-def integerQuantize() -> None:
-    onnxPath = MODEL_PATH.with_suffix(".onnx")
-    preprocessPath = pathlib.Path(R"models/ten_gestures_preprocessed.onnx")
-    quantizedPath = pathlib.Path(R"models/ten_gestures_int8.onnx")
+def getArgs() -> ProgramArguments:
+    parser = argparse.ArgumentParser("quantization.py")
+    parser.add_argument(
+        "model", type=pathlib.Path, help="Path to model for quantization"
+    )
+    parser.add_argument(
+        "dataset",
+        type=pathlib.Path,
+        help="Path to dataset root to create calibration dataset.",
+    )
+    return parser.parse_args(namespace=ProgramArguments())
+
+
+def integerQuantize(args: ProgramArguments, model: YOLO) -> None:
+    onnxPath = args.model.with_suffix(".onnx")
+    preprocessPath = onnxPath.with_name(onnxPath.stem + "_preprocessed.onnx")
+    quantizedPath = onnxPath.with_name(onnxPath.stem + "_int8.onnx")
 
     if quantizedPath.exists():
         return
 
     # Preprocess model if needed
     if not preprocessPath.exists():
-        model = YOLO(MODEL_PATH)
         model.export(format="onnx")
 
         subprocess.check_call(
@@ -81,7 +99,7 @@ def integerQuantize() -> None:
         quantizedPath,
         weight_type=QuantType.QInt8,
         activation_type=QuantType.QUInt8,
-        calibration_data_reader=DataReader(),
+        calibration_data_reader=DataReader(args.dataset),
         quant_format=QuantFormat.QDQ,
         nodes_to_exclude=[
             "/model.23/dfl/Reshape",
@@ -108,13 +126,14 @@ def integerQuantize() -> None:
 
 
 def main() -> None:
-    model = YOLO(MODEL_PATH)
+    args = getArgs()
+    model = YOLO(args.model)
 
     if not pathlib.Path(R"models/ten_gestures_full.onnx").exists():
         model.export(
             format="onnx",
             device=0,
-            data=DATASET / "hagrid.yaml",
+            data=args.dataset / "hagrid.yaml",
         )
         shutil.move("models/ten_gestures.onnx", "models/ten_gestures_full.onnx")
 
@@ -123,7 +142,7 @@ def main() -> None:
             format="onnx",
             half=True,
             device=0,
-            data=DATASET / "hagrid.yaml",
+            data=args.dataset / "hagrid.yaml",
         )
         shutil.move("models/ten_gestures.onnx", "models/ten_gestures_half.onnx")
 
@@ -134,7 +153,7 @@ def main() -> None:
         model.export(
             format="tflite",
             device=0,
-            data=DATASET / "hagrid.yaml",
+            data=args.dataset / "hagrid.yaml",
         )
         shutil.move(
             "models/ten_gestures_saved_model/ten_gestures_float32.tflite",
@@ -145,7 +164,7 @@ def main() -> None:
             "models/ten_gestures_half.tflite",
         )
 
-    integerQuantize()
+    integerQuantize(args, model)
 
 
 if __name__ == "__main__":
