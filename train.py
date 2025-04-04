@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import pathlib
 
 from ultralytics import YOLO  # type: ignore
+
+from custom.trainer import PrunedDectectionTrainer
 
 
 class Arguments(argparse.Namespace):
@@ -12,6 +15,7 @@ class Arguments(argparse.Namespace):
     project: pathlib.Path
     base_model: str
     resume: bool
+    pruned_model: bool
 
 
 def main() -> None:
@@ -37,6 +41,11 @@ def main() -> None:
     parser.add_argument(
         "--resume", action="store_true", help="Resume training if model exists."
     )
+    parser.add_argument(
+        "--pruned-model",
+        action="store_true",
+        help="If the model is a pruned model, this option should be enabled to maintain the pruning.",
+    )
     args = parser.parse_args(namespace=Arguments())
 
     # Check if training already started
@@ -48,9 +57,19 @@ def main() -> None:
         )
         exit(1)
 
+    # Check that python path is set if using pruned trainer
+    if args.pruned_model and os.environ.get("PYTHONPATH") is None:
+        print(
+            "PYTHONPATH is not set, add the repo directory to it when using the --pruned-model option."
+        )
+
     if modelExists:
         model = YOLO(modelPath / "weights/last.pt")
-        model.train(cfg=modelPath / "args.yaml", resume=True)  # type: ignore
+        model.train(  # type: ignore
+            trainer=PrunedDectectionTrainer if args.pruned_model else None,
+            cfg=modelPath / "args.yaml",
+            resume=True,
+        )
     else:
         if args.dataset is None:
             print("--dataset parameter is needed to train a new model.")
@@ -58,6 +77,7 @@ def main() -> None:
 
         model = YOLO(args.base_model)
         model.train(  # type: ignore
+            trainer=PrunedDectectionTrainer if args.pruned_model else None,
             data=args.dataset,
             epochs=100,
             imgsz=640,  # training image size

@@ -4,3 +4,4 @@ runs/
 models
 *.npy
 .vscode
+__pycache__
