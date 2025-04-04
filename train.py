@@ -44,7 +44,7 @@ def main() -> None:
     parser.add_argument(
         "--pruned-model",
         action="store_true",
-        help="If the model is a pruned model, this option should be enabled to maintain the pruning.",
+        help="If the model is a pruned model, this option should be enabled to maintain the pruning. When this option is used, the repo directory needs to be added to the PYTHON path, i.e. 'export PYTHONPATH=\"${PYTHONPATH}:/full/path/to/yolo/repo\"'",
     )
     args = parser.parse_args(namespace=Arguments())
 
