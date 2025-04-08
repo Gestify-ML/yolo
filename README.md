@@ -24,8 +24,6 @@ Fine-grained unstructured pruning removes individual weights (rather than entire
 It is important to note that while fine-grained pruning increases sparsity, speedups are only guaranteed on specialized hardware (e.g., NPUs/Tensor Cores with sparse compute support). For Android devices using standard CPU/GPU, unstructured pruning may reduce model size but often fails to improve latency due to irregular memory access patterns. 
 
 TODO:
-* Pruning techniques applied
-* Model compression methods
 * Successful deployment on target device
 * Hardware-specific optimizations
 * Error handling implementation
@@ -99,13 +97,15 @@ The artifacts from the script are as follows,
 
 ---
 
-'structured_prune.py' is used for performing structured (coarse) pruning on a trained YOLO model. It removes redundant channels and layers to optimize performance for mobile deployment. The script has the following arguments:
-*	--model – The path to the trained YOLO model to be pruned.
-*	--sparsity – The fraction of the model to prune (e.g., 0.3 removes 30% of the least important channels).
-*	--output – The directory where the pruned model will be saved.
-*	--fine-tune – (Optional) If set, the pruned model will be fine-tuned on the dataset to recover accuracy.
-*	--epochs – (Optional) The number of fine-tuning epochs (default: 10). Only relevant if --fine-tune is enabled.
+`coarse_prune.py` is used for performing structured (coarse) pruning on a trained YOLO model. It removes redundant channels and layers to optimize performance for mobile deployment. The script has the following arguments:
+* `--model` – The path to the trained YOLO model to be pruned.
+* `--sparsity` – The fraction of the model to prune (e.g., 0.3 removes 30% of the least important channels).
+* `--output` – The directory where the pruned model will be saved.
+* `--fine-tune` – (Optional) If set, the pruned model will be fine-tuned on the dataset to recover accuracy.
+* `--epochs` – (Optional) The number of fine-tuning epochs (default: 10). Only relevant if --fine-tune is enabled.
+
 ---
+
 `fine_prune.py`, is used for performing unstructured (fine-grained) pruning on a trained YOLO model. It prunes weights (not entire channels/neurons) based on L1 magnitude. The script has the following arguments:
 * `name`, A name for the model
 * `--dataset`, The dataset to use, this must be given if not resuming.
@@ -114,7 +114,11 @@ The artifacts from the script are as follows,
 * `--prune-ratio`, Percentage of weights in each layer to prune (0.0 - 1.0).
 
 ---
-TODO pruning scripts descriptions
+
+`reapply_prune.py`, is used to reapply the pruning after fine tuning a fine pruned model. The script has the following arguments:
+* `pruned`, path to the pruned model before fine tuning.
+* `tuned`, path to the fine tuned model.
+* `output`, path to output the modified model.
 
 TODO
 * Running demo on PC
