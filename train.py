@@ -6,7 +6,7 @@ import pathlib
 
 from ultralytics import YOLO  # type: ignore
 
-from custom.trainer import PrunedDectectionTrainer
+from custom.trainer import PrunedDetectionTrainer
 
 
 class Arguments(argparse.Namespace):
@@ -66,7 +66,7 @@ def main() -> None:
     if modelExists:
         model = YOLO(modelPath / "weights/last.pt")
         model.train(  # type: ignore
-            trainer=PrunedDectectionTrainer if args.pruned_model else None,
+            trainer=PrunedDetectionTrainer if args.pruned_model else None,
             cfg=modelPath / "args.yaml",
             resume=True,
         )
@@ -77,7 +77,7 @@ def main() -> None:
 
         model = YOLO(args.base_model)
         model.train(  # type: ignore
-            trainer=PrunedDectectionTrainer if args.pruned_model else None,
+            trainer=PrunedDetectionTrainer if args.pruned_model else None,
             data=args.dataset,
             epochs=100,
             imgsz=640,  # training image size
