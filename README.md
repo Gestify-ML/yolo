@@ -18,6 +18,11 @@ The model originally has elements in 32-bit floating point format. We use post-t
 ### Coarse Pruning
 Coarse pruning, also known as structured pruning, removes entire channels, layers, or blocks from the model to reduce its overall complexity while maintaining as much accuracy as possible. This process is particularly effective for deploying the model on resource-constrained devices such as Android smartphones. To achieve coarse pruning with the trained 10 gestures model, we use the ln_structured function.
 
+### Fine-Grained Pruning
+Fine-grained unstructured pruning removes individual weights (rather than entire neurons or filters) based on a criterion - in this case is magnitude (L1 norm). Unlike structured pruning, which eliminates whole channels for hardware efficiency, fine-grained pruning maximizes sparsity by zeroing out the least important weights, often leading to higher compression rates without altering layer shapes. We applied this method to prune a pretrained YOLO model that recognizes 10 gestures.
+
+It is important to note that while fine-grained pruning increases sparsity, speedups are only guaranteed on specialized hardware (e.g., NPUs/Tensor Cores with sparse compute support). For Android devices using standard CPU/GPU, unstructured pruning may reduce model size but often fails to improve latency due to irregular memory access patterns. 
+
 TODO:
 * Pruning techniques applied
 * Model compression methods
@@ -33,7 +38,8 @@ The code base is split into 4 distinct repositories. The [Hagrid](https://github
 The yolo repo has the following scripts:
 * `train.py`, trains or resumes training for a model. The dataset and base model are configurable through command line arguments. By default, the base model is the `yolo11n.pt` detection model from Ultralytics.
 * `quantization.py`, quantizes the trained model into several sizes and format. Formats being, ONNX in float32, float16, and int8. And tensorflow lite in float32 and float16. When quantizing to int8, 10 images from each class is selected as the calibration dataset.
-* TODO Fine prune and coarse prune scripts
+* `fine_prune.py`, performs unstructured (fine-grain) pruning on a trained YOLO model. It prunes weights (not entire channels/neurons) based on L1 magnitude. 
+* TODO coarse prune scripts
 
 ### Dataset and Training Environment Setup
 To use the training scripts in this repo, the dataset needs to be setup first.
@@ -100,7 +106,14 @@ The artifacts from the script are as follows,
 *	--fine-tune – (Optional) If set, the pruned model will be fine-tuned on the dataset to recover accuracy.
 *	--epochs – (Optional) The number of fine-tuning epochs (default: 10). Only relevant if --fine-tune is enabled.
 ---
+`fine_prune.py`, is used for performing unstructured (fine-grained) pruning on a trained YOLO model. It prunes weights (not entire channels/neurons) based on L1 magnitude. The script has the following arguments:
+* `name`, A name for the model
+* `--dataset`, The dataset to use, this must be given if not resuming.
+* `--project`, The directory to store the model under.
+* `--base-model`, The base model to train from. This can be one from Ultralytics like `yolo11n.pt` or a local model, say one that was pretrained.
+* `--prune-ratio`, Percentage of weights in each layer to prune (0.0 - 1.0).
 
+---
 TODO pruning scripts descriptions
 
 TODO
