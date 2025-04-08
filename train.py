@@ -16,6 +16,8 @@ class Arguments(argparse.Namespace):
     base_model: str
     resume: bool
     pruned_model: bool
+    epochs: int
+    patience: int
 
 
 def main() -> None:
@@ -45,6 +47,18 @@ def main() -> None:
         "--pruned-model",
         action="store_true",
         help="If the model is a pruned model, this option should be enabled to maintain the pruning. When this option is used, the repo directory needs to be added to the PYTHON path, i.e. 'export PYTHONPATH=\"${PYTHONPATH}:/full/path/to/yolo/repo\"'",
+    )
+    parser.add_argument(
+        "--epochs",
+        type=int,
+        default=100,
+        help="Max number of epochs to train for.",
+    )
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=100,
+        help="How many epochs to wait without validation improvement to stop early.",
     )
     args = parser.parse_args(namespace=Arguments())
 
@@ -79,7 +93,8 @@ def main() -> None:
         model.train(  # type: ignore
             trainer=PrunedDetectionTrainer if args.pruned_model else None,
             data=args.dataset,
-            epochs=100,
+            epochs=args.epochs,
+            patience=args.patience,
             imgsz=640,  # training image size
             device=[
                 0,

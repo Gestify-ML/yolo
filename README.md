@@ -85,6 +85,9 @@ Next to set up the environment for this repo, follow the following steps:
 * `--project`, The directory to store the model under.
 * `--base-model`, The base model to train from. This can be one from Ultralytics like `yolo11n.pt` or a local model, say one that was pruned.
 * `--resume`, resume training a model if it was stopped or interrupted. This should not be used if training a model that was just pruned, in that case treat it as a base model.
+* `--pruned-model`, switch that is needed if the base model is pruned. This maintains the pruning.
+* `--epochs`, maximum number of epochs to train for.
+* `--patience`, how many epochs to wait without validation improvement to stop early.
 
 ---
 
