@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
+
 import argparse
 import pathlib
+
 import torch
 import torch.nn.utils.prune as prune
-from ultralytics import YOLO 
+from ultralytics import YOLO  # type: ignore
 
 
 class Arguments(argparse.Namespace):
@@ -60,6 +63,7 @@ def unstructured_prune_model(model, prune_ratio):
 
     print("Unstructured pruning completed.")
     return model
+
 
 def main():
     args = parse_args()
