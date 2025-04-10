@@ -76,6 +76,7 @@ def main() -> None:
         print(
             "PYTHONPATH is not set, add the repo directory to it when using the --pruned-model option."
         )
+        exit(1)
 
     if modelExists:
         model = YOLO(modelPath / "weights/last.pt")
@@ -95,6 +96,7 @@ def main() -> None:
             data=args.dataset,
             epochs=args.epochs,
             patience=args.patience,
+            cache="disk",
             imgsz=640,  # training image size
             device=[
                 0,
