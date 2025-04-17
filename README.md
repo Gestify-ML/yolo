@@ -29,8 +29,13 @@ TODO:
 * Error handling implementation
 
 ## Optimization Decision Reasoning
+
+### Coarse Pruning
+To select the coarse pruning ratio, a sensitivity analysis was conducted. Starting from a ratio of 10% to 90%, each pruned model was fine tuned for a maximum of 10 epochs with a patience of 3 epochs. The pruning ratio vs accuracy is shown below.
+![alt text](documents/coarse_prune_evaluation.png)
+Based on this analysis, the coarse pruning ratio should be set at 50%, as any higher ratio results in total accuracy loss.
+
 TODO:
-* How coarse pruning threshold was selected
 * How fine pruning threshold was selected
 * How quantization output type was selected
 
