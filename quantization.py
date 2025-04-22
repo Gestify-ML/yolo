@@ -16,13 +16,11 @@ from onnxruntime.quantization import (  # type: ignore
 )
 from ultralytics import YOLO  # type: ignore
 
-# MODEL_PATH = pathlib.Path(R"models/ten_gestures.pt")
-# DATASET = pathlib.Path(R"/home/hwang6/data/hagrid_yolo_format")
-
 
 class ProgramArguments(argparse.Namespace):
     model: pathlib.Path
     dataset: pathlib.Path
+    output: pathlib.Path
 
 
 class DataReader(CalibrationDataReader):
@@ -32,7 +30,8 @@ class DataReader(CalibrationDataReader):
 
         self.image_paths: list[pathlib.Path] = []
         for c in (dataset / "val").iterdir():
-            self.image_paths.extend(random.sample(list(c.iterdir()), 10))
+            classImages = [i for i in c.iterdir() if i.suffix == ".jpg"]
+            self.image_paths.extend(random.sample(classImages, 10))
 
     def preprocess(self, imgPath: pathlib.Path):
         # Same preprocessing that you do before feeding it to the model
@@ -65,11 +64,14 @@ def getArgs() -> ProgramArguments:
         type=pathlib.Path,
         help="Path to dataset root to create calibration dataset.",
     )
+    parser.add_argument(
+        "output", type=pathlib.Path, help="directory to store quantized models."
+    )
     return parser.parse_args(namespace=ProgramArguments())
 
 
 def integerQuantize(args: ProgramArguments, model: YOLO) -> None:
-    onnxPath = args.model.with_suffix(".onnx")
+    onnxPath = args.output / args.model.with_suffix(".onnx").name
     preprocessPath = onnxPath.with_name(onnxPath.stem + "_preprocessed.onnx")
     quantizedPath = onnxPath.with_name(onnxPath.stem + "_int8.onnx")
 
@@ -127,28 +129,39 @@ def integerQuantize(args: ProgramArguments, model: YOLO) -> None:
 
 def main() -> None:
     args = getArgs()
-    model = YOLO(args.model)
 
-    if not pathlib.Path(R"models/ten_gestures_full.onnx").exists():
+    # Copy base model to output
+    args.output.mkdir(parents=True, exist_ok=True)
+    shutil.copy(args.model, args.output)
+
+    modelPath = args.output / args.model.name
+    modelStem = args.model.stem
+    model = YOLO(modelPath)
+
+    if not pathlib.Path(args.output / f"{modelStem}_full.onnx").exists():
         model.export(
             format="onnx",
             device=0,
             data=args.dataset / "hagrid.yaml",
         )
-        shutil.move("models/ten_gestures.onnx", "models/ten_gestures_full.onnx")
+        shutil.move(
+            args.output / f"{modelStem}.onnx", args.output / f"{modelStem}_full.onnx"
+        )
 
-    if not pathlib.Path(R"models/ten_gestures_half.onnx").exists():
+    if not pathlib.Path(args.output / f"{modelStem}_half.onnx").exists():
         model.export(
             format="onnx",
             half=True,
             device=0,
             data=args.dataset / "hagrid.yaml",
         )
-        shutil.move("models/ten_gestures.onnx", "models/ten_gestures_half.onnx")
+        shutil.move(
+            args.output / f"{modelStem}.onnx", args.output / f"{modelStem}_half.onnx"
+        )
 
     if (
-        not pathlib.Path(R"models/ten_gestures_full.tflite").exists()
-        or not pathlib.Path(R"models/ten_gestures_half.tflite").exists()
+        not pathlib.Path(args.output / f"{modelStem}_full.tflite").exists()
+        or not pathlib.Path(args.output / f"{modelStem}_half.tflite").exists()
     ):
         model.export(
             format="tflite",
@@ -156,12 +169,12 @@ def main() -> None:
             data=args.dataset / "hagrid.yaml",
         )
         shutil.move(
-            "models/ten_gestures_saved_model/ten_gestures_float32.tflite",
-            "models/ten_gestures_full.tflite",
+            args.output / f"{modelStem}_saved_model/{modelStem}_float32.tflite",
+            args.output / f"{modelStem}_full.tflite",
         )
         shutil.move(
-            "models/ten_gestures_saved_model/ten_gestures_float16.tflite",
-            "models/ten_gestures_half.tflite",
+            args.output / f"{modelStem}_saved_model/{modelStem}_float16.tflite",
+            args.output / f"{modelStem}_half.tflite",
         )
 
     integerQuantize(args, model)

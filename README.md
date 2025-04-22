@@ -99,6 +99,7 @@ Next to set up the environment for this repo, follow the following steps:
 `quantization.py`, is used for quantizing and exporting a model into several format. It has the following arguments,
 * `model`, path to the model to quantize. The outputs from this script will be placed into the same directory.
 * `dataset`, path to the dataset to use for calibration data.
+* `output`, path to write quantized models.
 
 The artifacts from the script are as follows,
 * `[model_name]_full.onnx`, float32 in ONNX format
