@@ -133,6 +133,12 @@ The artifacts from the script are as follows,
 * `tuned`, path to the fine tuned model.
 * `output`, path to output the modified model.
 
+---
+
+`measure_inference.py`, is used to measure the average inference speed of a model. The script has the following arguments:
+* `model`, path to the model to test.
+* `video`, path to a video to run predictions on.
+
 TODO
 * Running demo on PC
 * Running demo on Phone
