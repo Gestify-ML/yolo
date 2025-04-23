@@ -35,6 +35,9 @@ To select the coarse pruning ratio, a sensitivity analysis was conducted. Starti
 ![alt text](documents/coarse_prune_evaluation.png)
 Based on this analysis, the coarse pruning ratio should be set at 50%, as any higher ratio results in total accuracy loss.
 
+### Quantization Level
+Based on the [inference time](#inference-speed) results, the quantization level should be chosen based on the device. If the GPU is used, the full precision model should be used. Otherwise if the CPU is used, the integer model should be used.
+
 TODO:
 * How fine pruning threshold was selected
 * How quantization output type was selected
@@ -144,6 +147,28 @@ TODO
 * Running demo on Phone
 
 ## Benchmark Results
+
+### Inference Speed
+The average inference speed was computed by running the model with the frames from a prepared [video](videos/InferenceTest.mp4). The inference measurements were done on a desktop PC using the GPU or the CPU. Full precision 32-bit floating point, half precision 16-bit floating point, and 8-bit integer models were tested. The GPU used is a NVIDIA RTX 3060Ti, while the CPU used is a AMD Ryzen 9 5900X 12-Core Processor. The following table lists the average inference time for each device and model configuration.
+
+|Device|Model                                  |Inference Time (ms)|
+|------|---------------------------------------|-------------------|
+|gpu   |ten_gestures_full                      |8.551              |
+|gpu   |ten_gestures_half                      |9.884              |
+|gpu   |ten_gestures_int8                      |18.479             |
+|gpu   |ten_gestures_coarse_prune_50_tuned_full|9.650              |
+|gpu   |ten_gestures_coarse_prune_50_tuned_half|10.287             |
+|gpu   |ten_gestures_coarse_prune_50_tuned_int8|19.034             |
+|cpu   |ten_gestures_full                      |29.960             |
+|cpu   |ten_gestures_half                      |40.997             |
+|cpu   |ten_gestures_int8                      |26.191             |
+|cpu   |ten_gestures_coarse_prune_50_tuned_full|29.783             |
+|cpu   |ten_gestures_coarse_prune_50_tuned_half|44.529             |
+|cpu   |ten_gestures_coarse_prune_50_tuned_int8|27.625             |
+
+When running on the GPU, the floating point models are comparable. Though the integer model is much slower, which might be due to how the GPU is designed to accelerate floating point operations. When comparing between the base model and the pruned model, the inference times are roughly the same.
+When running on the CPU, the inference time is much slower than the GPU. Interestingly, half precision is almost twice as slow as the full precision model. Additionally, the integer model is marginally faster than the full precision model. Again, there is little difference between the base model and the pruned model.
+
 * Inference Speed
   * Latency measurements
   * Throughput analysis
