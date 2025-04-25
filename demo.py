@@ -1,20 +1,26 @@
+import argparse
+import functools
 import pathlib
 from typing import Any
 
 import gradio as gr
 from ultralytics import YOLO  # type: ignore
 
-MODEL_PATH = pathlib.Path(R"models/ten_gestures.pt")
-model = YOLO(MODEL_PATH)
 
-
-def inference(img: Any) -> Any:
+def inference(model: YOLO, img: Any) -> Any:
     results = model.predict(img, verbose=True)  # type: ignore
     resultsPlotted = results[0].plot()  # type: ignore
     return resultsPlotted  # type: ignore
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser("demo.py")
+    parser.add_argument("model", type=pathlib.Path, help="Path to model.")
+    args = parser.parse_args()
+    modelPath = args.model
+
+    model = YOLO(modelPath)
+
     with gr.Blocks() as app:
         with gr.Row():
             with gr.Column():
@@ -24,7 +30,7 @@ def main() -> None:
                 outputImg = gr.Image(streaming=True, show_label=False)
 
         imgStream.stream(
-            fn=inference,
+            fn=functools.partial(inference, model),
             inputs=[imgStream],
             outputs=outputImg,
             stream_every=0.001,
