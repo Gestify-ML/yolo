@@ -29,6 +29,12 @@ TODO:
 * Error handling implementation
 
 ## Optimization Decision Reasoning
+### Fine Grain Pruning
+To select the fine grain pruning ratio, a sensitivity analysis was conducted. Starting from a ratio of 10% to 90%, each pruned model was fine tuned for a maximum of 15 epochs. The pruning ratio vs accuracy is shown below.
+![alt text](documents/fine_grain_prune_evaluation.png)
+As can be seen even with 10% of the model pruned, the accuracy falls from around 0.88 from the original model to around 0.5. Even with pruning ratio around 30%, the model's accuracy starts to drop to around 0.
+
+Due to the poor performance of the fine grain pruning, we decided not to perform fine grain pruning for our final model. 
 
 ### Coarse Pruning
 To select the coarse pruning ratio, a sensitivity analysis was conducted. Starting from a ratio of 10% to 90%, each pruned model was fine tuned for a maximum of 10 epochs with a patience of 3 epochs. The pruning ratio vs accuracy is shown below.
@@ -39,7 +45,6 @@ Based on this analysis, the coarse pruning ratio should be set at 50%, as any hi
 Based on the [inference time](#inference-speed) results, the quantization level should be chosen based on the device. If the GPU is used, the full precision model should be used. Otherwise if the CPU is used, the integer model should be used.
 
 TODO:
-* How fine pruning threshold was selected
 * How quantization output type was selected
 
 ## Setup and Training
