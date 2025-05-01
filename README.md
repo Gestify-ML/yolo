@@ -1,12 +1,6 @@
 # Yolo
 Gestify's hand recognition model is based on Ultralytics' detection model, and was trained on a subset of HaGRID's gestures dataset. The trained model was then pruned and quantized for running on an Android device.
 
-## Architecture
-* Architecture diagrams
-* Appropriate model size for device constraints
-* Efficient layer organization
-* Memory optimization considerations
-
 ## Implementation
 The trained model is based on Ultralytics's Yolo11n detection model, and is trained on Hagrid's hand gesture  dataset.
 
@@ -22,11 +16,6 @@ Coarse pruning, also known as structured pruning, removes entire channels, layer
 Fine-grained unstructured pruning removes individual weights (rather than entire neurons or filters) based on a criterion - in this case is magnitude (L1 norm). Unlike structured pruning, which eliminates whole channels for hardware efficiency, fine-grained pruning maximizes sparsity by zeroing out the least important weights, often leading to higher compression rates without altering layer shapes. We applied this method to prune a pretrained YOLO model that recognizes 10 gestures.
 
 It is important to note that while fine-grained pruning increases sparsity, speedups are only guaranteed on specialized hardware (e.g., NPUs/Tensor Cores with sparse compute support). For Android devices using standard CPU/GPU, unstructured pruning may reduce model size but often fails to improve latency due to irregular memory access patterns. 
-
-TODO:
-* Successful deployment on target device
-* Hardware-specific optimizations
-* Error handling implementation
 
 ## Optimization Decision Reasoning
 ### Fine Grain Pruning
@@ -153,8 +142,9 @@ The artifacts from the script are as follows,
 `demo.py`, is used to run a model on a PC in a demo website. The script has the following arguments:
 * `model`, path to the model to run the demo with.
 
-TODO
-* Running demo on Phone
+---
+
+To run the Gestify app, refer to the Gestify repo.
 
 ## Benchmark Results
 
