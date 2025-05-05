@@ -31,10 +31,7 @@ To select the coarse pruning ratio, a sensitivity analysis was conducted. Starti
 Based on this analysis, the coarse pruning ratio should be set at 50%, as any higher ratio results in total accuracy loss.
 
 ### Quantization Level
-Based on the [inference time](#inference-speed) results, the quantization level should be chosen based on the device. If the GPU is used, the full precision model should be used. Otherwise if the CPU is used, the integer model should be used.
-
-TODO:
-* How quantization output type was selected
+Based on the [inference time](#inference-speed) results, the quantization level should be chosen based on the device. If the GPU is used, the full precision model should be used. Otherwise if the CPU is used, the integer model should be used. Since inference is run on the phone's CPU, 8-bit integer quantization was selected.
 
 ## Setup and Training
 The code base is split into 4 distinct repositories. The [Hagrid](https://github.com/Gestify-ML/hagrid) repo contains the dataset acquisition and preparation scripts. It was forked and modified to allow it to covert from the hagrid dataset format to the yolo dataset format. The [Ultralytics](https://github.com/Gestify-ML/ultralytics) repo contains the training framework. It was forked and modified to use the dataset from the converted hagrid dataset. The [Gestify](https://github.com/Gestify-ML/gestify) repo contains the Gestify app which runs the trained model. And lastly, the [Yolo](https://github.com/Gestify-ML/yolo) repo contains the scripts to train, prune, quantize, and export the hand detection model. It also contains a desktop demo to run a model.
