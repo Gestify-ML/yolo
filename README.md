@@ -166,10 +166,13 @@ The average inference speed was computed by running the model with the frames fr
 When running on the GPU, the floating point models are comparable. Though the integer model is much slower, which might be due to how the GPU is designed to accelerate floating point operations. When comparing between the base model and the pruned model, the inference times are roughly the same.
 When running on the CPU, the inference time is much slower than the GPU. Interestingly, half precision is almost twice as slow as the full precision model. Additionally, the integer model is marginally faster than the full precision model. Again, there is little difference between the base model and the pruned model.
 
-* Resource Utilization
-  * Memory usage monitoring
-  * CPU/GPU efficiency
-  * Battery impact assessment
+## Resource Utilization on Samsung S24+
+- Battery Impact Assesment:
+   - Averages ~10% battery usage per hour during operation
+- Andriod App CPU Usage:
+   - ~200ms average inference time with ten_gestures_full model
+
+To do:
 * Accuracy Metrics (Initial Accuracy of the model will not be evaluated)
   * Model accuracy comparison
   * Performance degradation analysis
