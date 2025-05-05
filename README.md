@@ -170,7 +170,7 @@ When running on the CPU, the inference time is much slower than the GPU. Interes
 - Battery Impact Assesment:
    - Averages ~10% battery usage per hour during operation
 - Andriod App CPU Usage:
-   - ~200ms average inference time with ten_gestures_full model
+   - ~100ms average inference time with ten_gestures_full model
 
 To do:
 * Accuracy Metrics (Initial Accuracy of the model will not be evaluated)
