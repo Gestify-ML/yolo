@@ -39,8 +39,8 @@ The code base is split into 4 distinct repositories. The [Hagrid](https://github
 The yolo repo has the following scripts:
 * `train.py`, trains or resumes training for a model. The dataset and base model are configurable through command line arguments. By default, the base model is the `yolo11n.pt` detection model from Ultralytics.
 * `quantization.py`, quantizes the trained model into several sizes and format. Formats being, ONNX in float32, float16, and int8. And tensorflow lite in float32 and float16. When quantizing to int8, 10 images from each class is selected as the calibration dataset.
-* `fine_prune.py`, performs unstructured (fine-grain) pruning on a trained YOLO model. It prunes weights (not entire channels/neurons) based on L1 magnitude. 
-* TODO coarse prune scripts
+* `fine_prune.py`, performs unstructured (fine-grain) pruning on a trained YOLO model. It prunes weights (not entire channels/neurons) based on L1 magnitude.
+* `coarse_prune.py`, performs structured (coarse) pruning on a trained YOLO model. It removes redundant channels and layers to optimize performance for mobile deployment. 
 
 ### Dataset and Training Environment Setup
 To use the training scripts in this repo, the dataset needs to be setup first.
@@ -171,8 +171,3 @@ When running on the CPU, the inference time is much slower than the GPU. Interes
    - Averages ~10% battery usage per hour during operation
 - Andriod App CPU Usage:
    - ~100ms average inference time with ten_gestures_full model
-
-To do:
-* Accuracy Metrics (Initial Accuracy of the model will not be evaluated)
-  * Model accuracy comparison
-  * Performance degradation analysis
